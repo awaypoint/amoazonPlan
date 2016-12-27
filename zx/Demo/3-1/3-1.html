@@ -27,6 +27,7 @@
 			height: 30px;
 			line-height: 30px;
 			text-align: right;
+			overflow: hidden;
 		}
 		#result_num {
 			height: 54px;
@@ -98,11 +99,14 @@
 			var eq = document.getElementById('eq');
 			var formula = document.getElementById('formula');
 			var resultNum = document.getElementById('result_num');
-			for (var i = 0; i < lis.length; i++) {
+			var eqFlag = false;
 
+			// 给每一个按钮绑定点击事件
+			for (var i = 0; i < lis.length; i++) {
 				lis[i].index = i;
 				lis[i].onclick = function() {	
 					simbol = this.innerHTML;
+					//判断按了什么内容
 					switch(simbol) {
 						case '+':
 						calculate('+');
@@ -120,7 +124,7 @@
 						calculate('%');
 						break;
 						case '=':
-
+						calculate('=');
 						break;
 						case 'c':
 						resultNum.innerHTML = '0';
@@ -130,21 +134,42 @@
 						resultNum.innerHTML = resultNum.innerHTML.indexOf('.') != -1 ? resultNum.innerHTML : (resultNum.innerHTML + '.');
 						break;
 						default:
-						if (resultNum.innerHTML.indexOf('.') != -1) {
-							resultNum.innerHTML = parseFloat(resultNum.innerHTML) + parseFloat(this.innerHTML)/10;
-						}else {
-							resultNum.innerHTML = parseFloat(resultNum.innerHTML)*10 + parseFloat(this.innerHTML);
+						if (!eqFlag) {
+							if (resultNum.innerHTML == "0") {
+								resultNum.innerHTML = simbol;
+							}else if(resultNum.innerHTML.search(/[\%\/\*\+\-]/) != -1 ) {
+								formula.innerHTML += resultNum.innerHTML;
+								resultNum.innerHTML = '';
+								resultNum.innerHTML += simbol;
+							}else if(resultNum.innerHTML.length < 12){
+								resultNum.innerHTML += simbol;
+							}
+						}else{
+							eqFlag = false;
+							resultNum.innerHTML = simbol;
+							formula.innerHTML = '';
 						}
 						
-
 					}
 				}
 			}
 
+			// 对于非数字输入进入处理
 			function calculate(simbol) {
-					var arr = new Array();
-					arr.push(parseFloat(resultNum.innerHTML));
-					
+				if (eqFlag) {
+					eqFlag = false;
+					formula.innerHTML = resultNum.innerHTML;
+					resultNum.innerHTML = simbol;
+				}else if (resultNum.innerHTML.search(/[\%\/\*\+\-]/) == -1) {
+					formula.innerHTML += resultNum.innerHTML;
+					resultNum.innerHTML = simbol;
+				}
+				//判定是否按下等于号，如果按下，则将计算结果返回
+				if (simbol == "=") {
+					eqFlag = true;
+					resultNum.innerHTML = eval(formula.innerHTML);
+				}
+
 			}
 
 		}
